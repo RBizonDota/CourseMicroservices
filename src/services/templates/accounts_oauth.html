@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Oauth auth"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"></script>
+
+    <title>OAuth service</title>
+  </head>
+  <body>
+    <div id="root">
+        <form id="oauth-form">
+            <input name="username" type="text" placeholder="username"/>
+            <input name="password" type="tepasswordxt" placeholder="password"/>
+            <input type="submit"/>
+        </form>
+    </div>
+    <script>
+      var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+        return false;
+    };
+
+      $( "#oauth-form" ).submit(function( event ) {
+        event.preventDefault();
+        console.log(getUrlParameter('uid'))
+        $.ajax({
+          url:'/auth/oauth?uid='+getUrlParameter('uid'),
+          method:'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            username: event.target.username.value,
+            password: event.target.password.value,
+          })
+        }).done(
+            res=>{
+              console.log("REQUEST ended", res)
+              window.location.href = res.redirect_to;
+            })
+      });
+
+    </script>
+  </body>
+</html>

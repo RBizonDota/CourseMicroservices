@@ -17,7 +17,7 @@ class UserCredentials(BaseModel):
     password: constr(max_length=100)
 
 class ProviderCredentials(BaseModel):
-    client_id: constr(max_length=100)
+    client_uid: constr(max_length=100)
     secret: constr(max_length=100)
     code: constr(max_length=100)
 

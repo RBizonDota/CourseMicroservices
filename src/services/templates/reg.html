@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Oauth auth"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"></script>
+
+    <title>OAuth service</title>
+  </head>
+  <body>
+    <div id="root">
+        <form id="reg-form">
+            <input name="username" type="text" placeholder="username"/>
+            <input name="password" type="password" placeholder="password"/>
+            <select id="role" name="select">
+                <option value="worker">Работник</option>
+                <option value="accountant">Бухгалтер</option>
+                <option value="manager">Менеджер</option>
+                <option value="admin">Админ</option>
+            </select>
+            <input type="submit" />
+        </form>
+    </div>
+    <script>
+
+      $( "#reg-form" ).submit(function( event ) {
+        event.preventDefault();
+        let selector = $('#role').val()
+        $.ajax({
+          url:'/reg',
+          method:'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            username: event.target.username.value,
+            password: event.target.password.value,
+            role: selector,
+          })
+        }).done(
+            res=>{
+              console.log("User created", res);
+            })
+      });
+
+    </script>
+  </body>
+</html>
