@@ -9,6 +9,8 @@ _PydanticUser = sqlalchemy_to_pydantic(User)
 class PydanticUser(_PydanticUser):
     def prepare(self):
         self.password = ""
+        if not self.email:
+            self.email = ''
 
         return self.dict()
 

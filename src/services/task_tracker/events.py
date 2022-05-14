@@ -1,6 +1,7 @@
 from task_tracker.db import User, Task, db
 from kafka import KafkaProducer
 import json
+from schema_registry.validator import validateMessage
 
 KAFKA_URL = 'localhost:29092'
 producer = KafkaProducer(bootstrap_servers=KAFKA_URL, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
@@ -12,6 +13,13 @@ def userCreated(data):
     user_instance = User(**data)
     db.session.add(user_instance)
     db.session.commit()
+
+# Producers
+
+def sendMessage(topic, data):
+    # todo: валидация
+    validateMessage(topic, data)
+    producer.send(topic, data)
 
 def taskCreated(task, assignee):
     time_updated = ""
@@ -27,8 +35,9 @@ def taskCreated(task, assignee):
         "time_updated": time_updated
     }
 
-    producer.send('Task', {
-        "event": "created",
+    sendMessage('Task', {
+        "event_name": "taskCreated",
+        "event_version": 1,
         "data": data
         })
 
@@ -37,8 +46,9 @@ def taskStatusChanged(task: Task):
         "task_uid": task.uid,
         "status": task.status,
     }
-    producer.send('Task', {
-        "event": "status_changed",
+    sendMessage('Task', {
+        "event_name": "statusChanged",
+        "event_version": 1,
         "data": data
         })
 
@@ -47,7 +57,8 @@ def taskReassigned(task: Task, user: User):
         "task_uid": task.uid,
         "user_uid": user.uid
     }
-    producer.send('Task', {
-        "event": "reassigned",
+    sendMessage('Task', {
+        "event_name": "taskReassigned",
+        "event_version": 1,
         "data": data
         })
