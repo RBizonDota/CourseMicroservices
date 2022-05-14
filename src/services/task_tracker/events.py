@@ -22,22 +22,18 @@ def sendMessage(topic, data):
     producer.send(topic, data)
 
 def taskCreated(task, assignee):
-    time_updated = ""
-    if task.time_updated:
-        time_updated = task.time_updated.strftime("%Y-%m-%d %H:%M:%S")
     data = {
         "uid": task.uid,
         "name": task.name,
+        "jira_id": task.jira_id,
         "description": task.description,
         "assignee_uid": assignee.uid, 
-        "status": task.status,
-        "time_created": task.time_created.strftime("%Y-%m-%d %H:%M:%S"),
-        "time_updated": time_updated
+        "status": task.status
     }
 
     sendMessage('Task', {
         "event_name": "taskCreated",
-        "event_version": 1,
+        "event_version": 2,
         "data": data
         })
 
