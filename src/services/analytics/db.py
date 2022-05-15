@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import Session
 
-from payments.app import app
+from analytics.app import app
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -33,8 +33,6 @@ class User(db.Model):
     email = Column(String)
     role = Column(Enum(RoleChoices))
 
-    payments = relationship("Payment")
-
 class Token(db.Model):
     __tablename__ = "tokens"
     id = Column(Integer, primary_key=True)
@@ -50,20 +48,12 @@ class Task(db.Model):
 
     id = Column(Integer, primary_key=True)
     uid = Column(String)
-    jira_id = Column(String)
-    assignee_id = Column(Integer, ForeignKey('users.id'))
-    status = Column(Enum(StatusChoices), default=StatusChoices.OPENED)
 
     name = Column(String)
     description = Column(String, default="")
 
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
-
-    pay_on_finish = Column(Integer)
-    pay_on_reassign = Column(Integer)
-
-    payments = relationship("Payment")
 
     def generatePaymentValues(self):
         self.pay_on_finish = randint(20, 40)
@@ -77,7 +67,7 @@ class Payment(db.Model):
     task_id = Column(Integer, ForeignKey('tasks.id'))
     value = Column(Integer)
 
-    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_created = Column(DateTime(timezone=True))
 
 
 @app.before_first_request

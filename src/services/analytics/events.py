@@ -1,8 +1,10 @@
-from payments.db import User, Task, Payment, db
+from analytics.db import User, Task, Payment, db
 from kafka import KafkaProducer
 import json
 from schema_registry.validator import validateMessage
 from payments.db import StatusChoices
+
+from datetime import datetime
 
 KAFKA_URL = 'localhost:29092'
 producer = KafkaProducer(bootstrap_servers=KAFKA_URL, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
@@ -21,35 +23,31 @@ def taskCreated(data):
     assignee_uid = data.pop('assignee_uid', None)
 
     user = User.query.filter_by(uid=assignee_uid).first()
-    task_instance = Task(**data, assignee_id=user.id)
+    task_instance = Task(**{
+        "id": data["id"],
+        "uid": data["uid"],
+        "name": data["name"],
+        "description": data["description"],
+        "assignee_id": user.id
+    })
     task_instance.generatePaymentValues()
     print("CREATED TASK", task_instance)
     db.session.add(task_instance)
     db.session.commit()
 
-def taskStatusChanged(data):
-    print("Creating payment", data)
-    # user = User.query.filter(uid=data["user_uid"]).first()
+def paymentCreated(data):
+    data.pop('id', None)
+
     task = Task.query.filter_by(uid=data["task_uid"]).first()
-    task.status = data["status"]
-    
-    payment = Payment(user_id = task.assignee_id, task_id = task.id, value=task.pay_on_finish)
-    print("paymentCreated", task.assignee_id, task, payment)
-    db.session.add(payment)
-    db.session.commit()
-    db.session.add(task)
-    db.session.commit()
+    user = Task.query.filter_by(uid=data["user_uid"]).first()
 
-def taskReassigned(data):
-
-    user = User.query.filter_by(uid=data["user_uid"]).first()
-    task = Task.query.filter_by(uid=data["task_uid"]).first()
-    task.assignee_id = user.id
-
-    payment = Payment(user_id = user.id, task_id = task.id, value=task.pay_on_reassign)
-    db.session.add(payment)
-    db.session.commit()
-    db.session.add(task)
+    payment = {
+        "task_id":task.id,
+        "user_id":user.id,
+        "value": data["value"]
+    }
+    payment_instance = Payment(**payment)
+    db.session.add(payment_instance)
     db.session.commit()
 
 # Producers
@@ -63,7 +61,8 @@ def paymentCreated(payment: Payment):
     data = {
         "user_uid": User.query.filter_by(id=payment.user_id).first().uid,
         "task_uid": Task.query.filter_by(id=payment.task_id).first().uid,
-        "value": payment.value
+        "value": payment.value,
+        "time_created": datetime.strptime(payment.time_created, "%m/%d/%Y, %H:%M:%S")
     }
 
     producer.send('Payment', data)
