@@ -1,0 +1,11 @@
+{
+    "event_name": {"type": "string"},
+    "event_id": {"type": "integer"},
+    "data":{
+        "type": "object",
+        "properties": {
+            "task_uid": {"type": "string"},
+            "user_uid": {"type": "string"}
+        }
+    }
+}

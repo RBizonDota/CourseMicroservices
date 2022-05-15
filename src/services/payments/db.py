@@ -2,17 +2,19 @@
 from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import Session
 
-from task_tracker.app import app
+from payments.app import app
 
 from flask_sqlalchemy import SQLAlchemy
 
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
+from random import randint
+
 import enum
 
 db: Session = SQLAlchemy(app)
-db_path = "../local_databases/auth_db.db"
+db_path = "../local_databases/payments_db.db"
 
 # From auth app
 class RoleChoices(str, enum.Enum):
@@ -31,7 +33,7 @@ class User(db.Model):
     email = Column(String)
     role = Column(Enum(RoleChoices))
 
-    tasks = relationship("Task")
+    payments = relationship("Payment")
 
 class Token(db.Model):
     __tablename__ = "tokens"
@@ -57,6 +59,26 @@ class Task(db.Model):
 
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    pay_on_finish = Column(Integer)
+    pay_on_reassign = Column(Integer)
+
+    payments = relationship("Payment")
+
+    def generatePaymentValues(self):
+        self.pay_on_finish = randint(20, 40)
+        self.pay_on_reassign = randint(-20, -10)
+
+class Payment(db.Model):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    task_id = Column(Integer, ForeignKey('tasks.id'))
+    value = Column(Integer)
+
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+
 
 @app.before_first_request
 def create_tables():

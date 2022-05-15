@@ -66,7 +66,8 @@ def create_tables():
         db.session.add(new_user)
         
         oauth_dicts = [
-            {"uid": 'd25fc48d-ba74-40dc-a359-da80b55e1d1a', "secret":"my-secret2", "redirect_uri":"http://localhost:10002/auth/confirm"}
+            {"uid": 'd25fc48d-ba74-40dc-a359-da80b55e1d1a', "secret":"my-secret2", "redirect_uri":"http://localhost:10002/auth/confirm"},
+            {"uid": '2d2ade69-cdcb-4b06-9f16-4d1fdfef9d83', "secret":"my-secret3", "redirect_uri":"http://localhost:10003/auth/confirm"}
         ]
         for client in oauth_dicts:
             db.session.add(OAuthClient(**client))
